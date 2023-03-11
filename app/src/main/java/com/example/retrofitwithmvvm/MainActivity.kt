@@ -5,7 +5,10 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.retrofitwithmvvm.databinding.ActivityMainBinding
 
 
 import retrofit2.Retrofit
@@ -14,11 +17,13 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
     lateinit var mainViewModel: MainViewModel
+    lateinit var list:ArrayList<Product>
+    lateinit var binding:ActivityMainBinding
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding=DataBindingUtil.setContentView(this,R.layout.activity_main)
         val retrofit= Retrofit.Builder()
             .baseUrl("https://dummyjson.com")
             .addConverterFactory(GsonConverterFactory.create())
@@ -27,9 +32,12 @@ class MainActivity : AppCompatActivity() {
 
         val repository=Repository(restApi)
         mainViewModel= ViewModelProvider(this,MainViewModelFactory(repository))[MainViewModel::class.java]
-        val text:TextView=findViewById(R.id.textResponse)
+
         mainViewModel.getData().observe(this){
-            text.text=it.products.toString()
+           list= it.products as ArrayList<Product>
+            val adapter=MainAdapter(this,list)
+            binding.mainRecycler.adapter=adapter
+
            Log.d("response",it.products.toString())
         }
 
